@@ -102,6 +102,8 @@ static const Layout layouts[] = {
     {NULL, NULL},
 };
 
+static int not_alerted_tags[] = {1 << 6};
+
 /* key definitions */
 #define MODKEY Mod4Mask
 #define TAGKEYS(KEY, TAG)                                                      \
@@ -123,7 +125,7 @@ static const Layout layouts[] = {
 /* helper for spawning shell commands in the pre dwm-5.0 fashion */
 #define SHCMD(cmd)                                                             \
   {                                                                            \
-    .v = (const char *[]) { "/bin/sh", "-c", cmd, NULL }                       \
+    .v = (const char *[]) { "/bin/zsh", "-c", cmd, NULL }                      \
   }
 
 /* commands */
@@ -187,25 +189,16 @@ static const Key keys[] = {
             TAGKEYS(XK_9, 8){MODKEY, XK_0, view, {.ui = ~0}},
     {MODKEY | ShiftMask, XK_0, tag, {.ui = ~0}},
     {MODKEY, XK_minus, spawn,
-     SHCMD("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-; kill -44 $(pidof "
-           "dwmblocks)")},
+     SHCMD("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-")},
     {MODKEY | ShiftMask, XK_minus, spawn,
-     SHCMD("wpctl set-volume @DEFAULT_AUDIO_SINK@ 15%-; kill -44 $(pidof "
-           "dwmblocks)")},
+     SHCMD("wpctl set-volume @DEFAULT_AUDIO_SINK@ 15%-")},
     {MODKEY, XK_equal, spawn,
-     SHCMD("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+; kill -44 $(pidof "
-           "dwmblocks)")},
+     SHCMD("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+")},
     {MODKEY | ShiftMask, XK_equal, spawn,
-     SHCMD("wpctl set-volume @DEFAULT_AUDIO_SINK@ 15%+; kill -44 $(pidof "
-           "dwmblocks)")},
-
+     SHCMD("wpctl set-volume @DEFAULT_AUDIO_SINK@ 15%+")},
     {MODKEY, XK_Tab, view, {0}},
     {MODKEY, XK_q, killclient, {0}},
     {MODKEY | ShiftMask, XK_w, spawn, {.v = (const char *[]){BROWSER, NULL}}},
-    {MODKEY | ShiftMask,
-     XK_r,
-     spawn,
-     {.v = (const char *[]){TERMINAL, "-e", "htop", NULL}}},
     {MODKEY, XK_t, setlayout, {.v = &layouts[0]}},             /* tile */
     {MODKEY | ShiftMask, XK_t, setlayout, {.v = &layouts[1]}}, /* bstack */
     {MODKEY, XK_y, setlayout, {.v = &layouts[2]}},             /* spiral */
@@ -242,9 +235,7 @@ static const Key keys[] = {
     /* V is automatically bound above in STACKKEYS */
     {MODKEY, XK_b, togglebar, {0}},
     {MODKEY | ShiftMask, XK_m, spawn,
-     SHCMD("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle; kill -44 "
-           "$(pidof "
-           "dwmblocks)")},
+     SHCMD("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle")},
     {MODKEY, XK_Left, focusmon, {.i = -1}},
     {MODKEY | ShiftMask, XK_Left, tagmon, {.i = -1}},
     {MODKEY, XK_Right, focusmon, {.i = +1}},
@@ -263,17 +254,15 @@ static const Key keys[] = {
      spawn,
      {.v = (const char *[]){"/home/radsteve/.local/bin/screenshot", NULL}}},
     {0, XF86XK_AudioMute, spawn,
-     SHCMD("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle; kill -44 "
-           "$(pidof "
-           "dwmblocks)")},
+     SHCMD("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle")},
     {0, XF86XK_AudioRaiseVolume, spawn,
      SHCMD("wpctl set-volume @DEFAULT_AUDIO_SINK@ 0%- && wpctl "
            "set-volume "
-           "@DEFAULT_AUDIO_SINK@ 3%+; kill -44 $(pidof dwmblocks)")},
+           "@DEFAULT_AUDIO_SINK@ 3%+")},
     {0, XF86XK_AudioLowerVolume, spawn,
      SHCMD("wpctl set-volume @DEFAULT_AUDIO_SINK@ 0%+ && wpctl "
            "set-volume "
-           "@DEFAULT_AUDIO_SINK@ 3%-; kill -44 $(pidof dwmblocks)")},
+           "@DEFAULT_AUDIO_SINK@ 3%-")},
     {0,
      XF86XK_AudioPrev,
      spawn,
