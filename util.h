@@ -7,4 +7,3 @@
 
 void die(const char *fmt, ...);
 void *ecalloc(size_t nmemb, size_t size);
-int valuenotinarray(int value, int *arr, size_t n);

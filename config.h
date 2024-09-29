@@ -69,7 +69,7 @@ static const Rule rules[] = {
     /* class    instance      title       	 tags mask    isfloating
        isterminal  noswallow  monitor */
     {"firefox", NULL, NULL, 1, 0, 0, 0, 1},
-    {"vesktop", NULL, NULL, 1 << 1, 0, 0, 0, 1},
+    {"vesktop", NULL, NULL, 1 << 1, 0, 0, 0, 0},
     {"Spotify", NULL, NULL, 1 << 3, 0, 0, 0, 1},
     {"pavucontrol", NULL, NULL, 1 << 6, 1, 0, 0, -1},
     {NULL, NULL, "Carla - CarlaConfig.carxp", 64, 0, 0, 0, 1},
@@ -140,8 +140,7 @@ static const char *autostartcmds[] = {
   "/home/radsteve/NowPlaying.sh &",
   "syncthing serve --no-browser &",
   "feh --bg-fill /home/radsteve/Pictures/wallpapers/Montains.png &",
-  "/home/radsteve/IdeaProjects/arduino-goxlr-rs/target/debug/",
-  "arduino-goxlr-rs &",
+  "/home/radsteve/IdeaProjects/arduino-goxlr-rs/target/debug &",
   "qpwgraph -x -m /home/radsteve/Patchbay.qpwgraph &",
   "PIPEWIRE_LATENCY='512/96000' carla /home/radsteve/CarlaConfig.carxp &",
   "dwmblocks &",

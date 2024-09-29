@@ -30,12 +30,3 @@ void *ecalloc(size_t nmemb, size_t size) {
     die("calloc:");
   return p;
 }
-
-int valuenotinarray(int value, int *arr, size_t n) {
-  for (size_t i = 0; i < n; i++) {
-    if (arr[i] == value)
-      return 0;
-  }
-
-  return 1;
-}
