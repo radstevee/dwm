@@ -69,9 +69,8 @@ static const Rule rules[] = {
     /* class    instance      title       	 tags mask    isfloating
        isterminal  noswallow  monitor */
     {"firefox", NULL, NULL, 1, 0, 0, 0, 1},
-    {"vesktop", NULL, NULL, 1 << 1, 0, 0, 0, 0},
+    {"vesktop", NULL, NULL, 1 << 1, 0, 0, 0, 1},
     {"Spotify", NULL, NULL, 1 << 3, 0, 0, 0, 1},
-    {"pavucontrol", NULL, NULL, 1 << 6, 1, 0, 0, -1},
     {NULL, NULL, "Carla - CarlaConfig.carxp", 64, 0, 0, 0, 1},
 };
 
@@ -128,24 +127,7 @@ static const char *termcmd[] = {TERMINAL, NULL};
 
 /* autostart */
 static const char *autostartcmds[] = {
-  "xrdb merge ~/.Xresources &",
-  "autorandr multi &",
-  "nvidia-settings --load-config-only &",
-  "systemctl --user start opentabletdriver.service &",
-  "/usr/lib/xfce-polkit/xfce-polkit &",
-  "dunst &",
-  "spotify &",
-  "firefox &",
-  "vesktop &",
-  "/home/radsteve/NowPlaying.sh &",
-  "syncthing serve --no-browser &",
-  "feh --bg-fill /home/radsteve/Pictures/wallpapers/Montains.png &",
-  "/home/radsteve/IdeaProjects/arduino-goxlr-rs/target/debug &",
-  "qpwgraph -x -m /home/radsteve/Patchbay.qpwgraph &",
-  "PIPEWIRE_LATENCY='512/96000' carla /home/radsteve/CarlaConfig.carxp &",
-  "dwmblocks &",
-  "/home/radsteve/.config/dwmblocks/updater.sh &",
-  "companion-headless &"
+  "/home/rad/startup.sh"
 };
 
 /*
@@ -245,7 +227,7 @@ static const Key keys[] = {
     {MODKEY,                        XK_space,  togglefloating, {0}},
     {MODKEY | ShiftMask,            XK_space,  zoom,           {0}},
     {MODKEY,                        XK_Scroll_Lock, spawn,     SHCMD("killall screenkey || screenkey &")},
-    {0,                             XK_Print,  spawn,          {.v = (const char *[]){"/home/radsteve/.local/bin/screenshot", NULL}}},
+    {0,                             XK_Print,  spawn,          SHCMD("flameshot gui -c")},
     {0,                             XF86XK_AudioMute, spawn,   SHCMD("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle")},
     {0,                             XF86XK_AudioRaiseVolume, spawn, SHCMD("wpctl set-volume @DEFAULT_AUDIO_SINK@ 0%- && wpctl set-volume @DEFAULT_AUDIO_SINK@ 3%+")},
     {0,                             XF86XK_AudioLowerVolume, spawn, SHCMD("wpctl set-volume @DEFAULT_AUDIO_SINK@ 0%+ && wpctl set-volume @DEFAULT_AUDIO_SINK@ 3%-")},
@@ -255,7 +237,8 @@ static const Key keys[] = {
     {0,                             XF86XK_AudioPlay, spawn,   {.v = (const char *[]){"playerctl", "play", NULL}}},
     {0,                             XF86XK_AudioStop, spawn,   {.v = (const char *[]){"playerctl", "stop", NULL}}},
     {MODKEY | ControlMask,          XK_q,      quit,           {.i = 23}},
-    {MODKEY,                        XK_c,      spawn,          {.v = (const char *[]){"=", "--dmenu=dmenu", NULL}}}
+    {MODKEY,                        XK_c,      spawn,          {.v = (const char *[]){"=", "--dmenu=dmenu", NULL}}},
+    {MODKEY,                        XK_period, spawn,          {.v = (const char *[]){"dmoji", NULL}}},
 };
 
 /* button definitions */
