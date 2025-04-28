@@ -29,6 +29,7 @@
 #include <X11/keysym.h>
 #include <errno.h>
 #include <locale.h>
+#include <math.h>
 #include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -148,6 +149,11 @@ typedef struct {
   void (*func)(const Arg *);
   const Arg arg;
 } Key;
+
+typedef struct {
+  const char *sig;
+  void (*func)(const Arg *);
+} Signal;
 
 typedef struct {
   const char *symbol;
@@ -966,6 +972,14 @@ void expose(XEvent *e) {
     drawbar(m);
 }
 
+void settagprop(int tag) {
+  Atom property = XInternAtom(dpy, "_DWM_CURRENT_TAG", False);
+  long value = tag;
+
+  XChangeProperty(dpy, root, property, XA_CARDINAL, 32, PropModeReplace,
+                  (unsigned char *)&value, 1);
+}
+
 void focus(Client *c) {
   if (!c || !ISVISIBLE(c)) {
     for (c = selmon->stack;
@@ -996,6 +1010,7 @@ void focus(Client *c) {
   }
   selmon->sel = c;
   drawbars();
+  settagprop(log2((double) selmon->tagset[selmon->seltags]));
 }
 
 /* there are some broken focus acquiring clients needing extra handling */
@@ -1177,6 +1192,49 @@ void keypress(XEvent *e) {
     if (keysym == keys[i].keysym &&
         CLEANMASK(keys[i].mod) == CLEANMASK(ev->state) && keys[i].func)
       keys[i].func(&(keys[i].arg));
+}
+
+int fake_signal(void) {
+  char fsignal[256];
+  char indicator[9] = "fsignal:";
+  char str_sig[50];
+  char param[16];
+  int i, len_str_sig, n, paramn;
+  size_t len_fsignal, len_indicator = strlen(indicator);
+  Arg arg;
+
+  if (gettextprop(root, XA_WM_NAME, fsignal, sizeof(fsignal))) {
+    len_fsignal = strlen(fsignal);
+
+    if (len_indicator > len_fsignal
+            ? 0
+            : strncmp(indicator, fsignal, len_indicator) == 0) {
+      paramn = sscanf(fsignal + len_indicator, "%s%n%s%n", str_sig,
+                      &len_str_sig, param, &n);
+
+      if (paramn == 1)
+        arg = (Arg){0};
+      else if (paramn > 2)
+        return 1;
+      else if (strncmp(param, "i", n - len_str_sig) == 0)
+        sscanf(fsignal + len_indicator + n, "%i", &(arg.i));
+      else if (strncmp(param, "ui", n - len_str_sig) == 0)
+        sscanf(fsignal + len_indicator + n, "%u", &(arg.ui));
+      else if (strncmp(param, "f", n - len_str_sig) == 0)
+        sscanf(fsignal + len_indicator + n, "%f", &(arg.f));
+      else
+        return 1;
+
+      for (i = 0; i < LENGTH(signals); i++)
+        if (strncmp(str_sig, signals[i].sig, len_str_sig) == 0 &&
+            signals[i].func)
+          signals[i].func(&(arg));
+
+      return 1;
+    }
+  }
+
+  return 0;
 }
 
 void killclient(const Arg *arg) {
@@ -1429,7 +1487,8 @@ void propertynotify(XEvent *e) {
   XPropertyEvent *ev = &e->xproperty;
 
   if ((ev->window == root) && (ev->atom == XA_WM_NAME)) {
-    updatestatus();
+    if (!fake_signal())
+      updatestatus();
   } else if (ev->state == PropertyDelete) {
     return; /* ignore */
   } else if ((c = wintoclient(ev->window))) {
