@@ -24,7 +24,7 @@ static int showbar = 0; /* 0 means no bar */
 static int topbar = 1;  /* 0 means bottom bar */
 static int usealtbar = 1;
 static const char *altbarclass = "Eww";
-static const char *altbarcmd = "eww daemon; eww open bar --screen 0 --id 0 && eww open bar --screen 1 --id 1";
+static const char *altbarcmd = "eww daemon; eww open-many bar0 bar1; eww reload";
 static char *fonts[] = {"ZedMono NerdFont:style:bold:pixelsize=16"};
 static char normbgcolor[] = "#222222";
 static char normbordercolor[] = "#444444";
@@ -82,7 +82,7 @@ static float mfact = 0.55;  /* factor of master area size [0.05..0.95] */
 static int nmaster = 1;     /* number of clients in master area */
 static int resizehints = 0; /* 1 means respect size hints in tiled resizals */
 static const int lockfullscreen =
-    1; /* 1 will force focus on the fullscreen window */
+    0; /* 1 will force focus on the fullscreen window */
 #define FORCE_VSPLIT                                                           \
   1 /* nrowgrid layout: force two clients to always split vertically */
 #include "vanitygaps.c"
@@ -103,8 +103,6 @@ static const Layout layouts[] = {
     {"><>", NULL}, /* no layout function means floating behavior */
     {NULL, NULL},
 };
-
-static int not_alerted_tags[] = {1 << 6};
 
 /* key definitions */
 #define MODKEY Mod4Mask
@@ -263,7 +261,6 @@ static const Key keys[] = {
      XF86XK_AudioStop,
      spawn,
      {.v = (const char *[]){"playerctl", "stop", NULL}}},
-    {MODKEY | ControlMask, XK_q, quit, {.i = 23}},
     {MODKEY, XK_c, spawn, {.v = (const char *[]){"=", "--dmenu=dmenu", NULL}}}};
 
 /* button definitions */

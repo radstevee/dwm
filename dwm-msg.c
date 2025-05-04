@@ -65,8 +65,10 @@ typedef struct dwm_ipc_header {
   uint8_t type;
 } __attribute((packed)) dwm_ipc_header_t;
 
-static int recv_message(uint8_t *msg_type, uint32_t *reply_size,
-                        uint8_t **reply) {
+static int
+recv_message(uint8_t *msg_type, uint32_t *reply_size,
+                        uint8_t **reply)
+{
   uint32_t read_bytes = 0;
   const int32_t to_read = sizeof(dwm_ipc_header_t);
   char header[to_read];
@@ -140,8 +142,10 @@ static int recv_message(uint8_t *msg_type, uint32_t *reply_size,
   return 0;
 }
 
-static int read_socket(IPCMessageType *msg_type, uint32_t *msg_size,
-                       char **msg) {
+static int
+read_socket(IPCMessageType *msg_type, uint32_t *msg_size,
+                       char **msg)
+{
   int ret = -1;
 
   while (ret != 0) {
@@ -161,7 +165,9 @@ static int read_socket(IPCMessageType *msg_type, uint32_t *msg_size,
   return 0;
 }
 
-static ssize_t write_socket(const void *buf, size_t count) {
+static ssize_t
+write_socket(const void *buf, size_t count)
+{
   size_t written = 0;
 
   while (written < count) {
@@ -179,7 +185,9 @@ static ssize_t write_socket(const void *buf, size_t count) {
   return written;
 }
 
-static void connect_to_socket() {
+static void
+connect_to_socket()
+{
   struct sockaddr_un addr;
 
   int sock = socket(AF_UNIX, SOCK_STREAM, 0);
@@ -195,8 +203,10 @@ static void connect_to_socket() {
   sock_fd = sock;
 }
 
-static int send_message(IPCMessageType msg_type, uint32_t msg_size,
-                        uint8_t *msg) {
+static int
+send_message(IPCMessageType msg_type, uint32_t msg_size,
+                        uint8_t *msg)
+{
   dwm_ipc_header_t header = {
       .magic = IPC_MAGIC_ARR, .size = msg_size, .type = msg_type};
 
@@ -215,7 +225,9 @@ static int send_message(IPCMessageType msg_type, uint32_t msg_size,
   return 0;
 }
 
-static int is_float(const char *s) {
+static int
+is_float(const char *s)
+{
   size_t len = strlen(s);
   int is_dot_used = 0;
   int is_minus_used = 0;
@@ -238,7 +250,9 @@ static int is_float(const char *s) {
   return 1;
 }
 
-static int is_unsigned_int(const char *s) {
+static int
+is_unsigned_int(const char *s)
+{
   size_t len = strlen(s);
 
   // Unsigned int can only have digits
@@ -252,7 +266,9 @@ static int is_unsigned_int(const char *s) {
   return 1;
 }
 
-static int is_signed_int(const char *s) {
+static int
+is_signed_int(const char *s)
+{
   size_t len = strlen(s);
 
   // Signed int can only have digits and a negative sign at the start
@@ -268,7 +284,9 @@ static int is_signed_int(const char *s) {
   return 1;
 }
 
-static void flush_socket_reply() {
+static void
+flush_socket_reply()
+{
   IPCMessageType reply_type;
   uint32_t reply_size;
   char *reply;
@@ -278,7 +296,9 @@ static void flush_socket_reply() {
   free(reply);
 }
 
-static void print_socket_reply() {
+static void
+print_socket_reply()
+{
   IPCMessageType reply_type;
   uint32_t reply_size;
   char *reply;
@@ -290,7 +310,9 @@ static void print_socket_reply() {
   free(reply);
 }
 
-static int run_command(const char *name, char *args[], int argc) {
+static int
+run_command(const char *name, char *args[], int argc)
+{
   const unsigned char *msg;
   size_t msg_size;
 
@@ -334,27 +356,35 @@ static int run_command(const char *name, char *args[], int argc) {
   return 0;
 }
 
-static int get_monitors() {
+static int
+get_monitors()
+{
   send_message(IPC_TYPE_GET_MONITORS, 1, (uint8_t *)"");
   print_socket_reply();
   return 0;
 }
 
-static int get_tags() {
+static int
+get_tags()
+{
   send_message(IPC_TYPE_GET_TAGS, 1, (uint8_t *)"");
   print_socket_reply();
 
   return 0;
 }
 
-static int get_layouts() {
+static int
+get_layouts()
+{
   send_message(IPC_TYPE_GET_LAYOUTS, 1, (uint8_t *)"");
   print_socket_reply();
 
   return 0;
 }
 
-static int get_dwm_client(Window win) {
+static int
+get_dwm_client(Window win)
+{
   const unsigned char *msg;
   size_t msg_size;
 
@@ -381,7 +411,9 @@ static int get_dwm_client(Window win) {
   return 0;
 }
 
-static int subscribe(const char *event) {
+static int
+subscribe(const char *event)
+{
   const unsigned char *msg;
   size_t msg_size;
 
@@ -413,7 +445,9 @@ static int subscribe(const char *event) {
   return 0;
 }
 
-static void usage_error(const char *prog_name, const char *format, ...) {
+static void
+usage_error(const char *prog_name, const char *format, ...)
+{
   va_list args;
   va_start(args, format);
 
@@ -426,7 +460,9 @@ static void usage_error(const char *prog_name, const char *format, ...) {
   exit(1);
 }
 
-static void print_usage(const char *name) {
+static void
+print_usage(const char *name)
+{
   printf("usage: %s [options] <command> [...]\n", name);
   puts("");
   puts("Commands:");
@@ -456,7 +492,9 @@ static void print_usage(const char *name) {
   puts("");
 }
 
-int main(int argc, char *argv[]) {
+int
+main(int argc, char *argv[])
+{
   const char *prog_name = argv[0];
 
   connect_to_socket();

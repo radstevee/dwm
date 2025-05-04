@@ -2,9 +2,7 @@
 
 #include <stdint.h>
 
-int
-dump_tag(yajl_gen gen, const char *name, const int tag_mask)
-{
+int dump_tag(yajl_gen gen, const char *name, const int tag_mask) {
   // clang-format off
   YMAP(
     YSTR("bit_mask"); YINT(tag_mask);
@@ -15,9 +13,7 @@ dump_tag(yajl_gen gen, const char *name, const int tag_mask)
   return 0;
 }
 
-int
-dump_tags(yajl_gen gen, const char *tags[], int tags_len)
-{
+int dump_tags(yajl_gen gen, const char *tags[], int tags_len) {
   // clang-format off
   YARR(
     for (int i = 0; i < tags_len; i++)
@@ -28,9 +24,7 @@ dump_tags(yajl_gen gen, const char *tags[], int tags_len)
   return 0;
 }
 
-int
-dump_client(yajl_gen gen, Client *c)
-{
+int dump_client(yajl_gen gen, Client *c) {
   // clang-format off
   YMAP(
     YSTR("name"); YSTR(c->name);
@@ -95,9 +89,7 @@ dump_client(yajl_gen gen, Client *c)
   return 0;
 }
 
-int
-dump_monitor(yajl_gen gen, Monitor *mon, int is_selected)
-{
+int dump_monitor(yajl_gen gen, Monitor *mon, int is_selected) {
   // clang-format off
   YMAP(
     YSTR("master_factor"); YDOUBLE(mon->mfact);
@@ -161,9 +153,7 @@ dump_monitor(yajl_gen gen, Monitor *mon, int is_selected)
   return 0;
 }
 
-int
-dump_monitors(yajl_gen gen, Monitor *mons, Monitor *selmon)
-{
+int dump_monitors(yajl_gen gen, Monitor *mons, Monitor *selmon) {
   // clang-format off
   YARR(
     for (Monitor *mon = mons; mon; mon = mon->next) {
@@ -178,9 +168,7 @@ dump_monitors(yajl_gen gen, Monitor *mons, Monitor *selmon)
   return 0;
 }
 
-int
-dump_layouts(yajl_gen gen, const Layout layouts[], const int layouts_len)
-{
+int dump_layouts(yajl_gen gen, const Layout layouts[], const int layouts_len) {
   // clang-format off
   YARR(
     for (int i = 0; i < layouts_len; i++) {
@@ -197,9 +185,7 @@ dump_layouts(yajl_gen gen, const Layout layouts[], const int layouts_len)
   return 0;
 }
 
-int
-dump_tag_state(yajl_gen gen, TagState state)
-{
+int dump_tag_state(yajl_gen gen, TagState state) {
   // clang-format off
   YMAP(
     YSTR("selected"); YINT(state.selected);
@@ -211,10 +197,8 @@ dump_tag_state(yajl_gen gen, TagState state)
   return 0;
 }
 
-int
-dump_tag_event(yajl_gen gen, int mon_num, TagState old_state,
-               TagState new_state)
-{
+int dump_tag_event(yajl_gen gen, int mon_num, TagState old_state,
+                   TagState new_state) {
   // clang-format off
   YMAP(
     YSTR("tag_change_event"); YMAP(
@@ -228,10 +212,8 @@ dump_tag_event(yajl_gen gen, int mon_num, TagState old_state,
   return 0;
 }
 
-int
-dump_client_focus_change_event(yajl_gen gen, Client *old_client,
-                               Client *new_client, int mon_num)
-{
+int dump_client_focus_change_event(yajl_gen gen, Client *old_client,
+                                   Client *new_client, int mon_num) {
   // clang-format off
   YMAP(
     YSTR("client_focus_change_event"); YMAP(
@@ -245,11 +227,9 @@ dump_client_focus_change_event(yajl_gen gen, Client *old_client,
   return 0;
 }
 
-int
-dump_layout_change_event(yajl_gen gen, const int mon_num,
-                         const char *old_symbol, const Layout *old_layout,
-                         const char *new_symbol, const Layout *new_layout)
-{
+int dump_layout_change_event(yajl_gen gen, const int mon_num,
+                             const char *old_symbol, const Layout *old_layout,
+                             const char *new_symbol, const Layout *new_layout) {
   // clang-format off
   YMAP(
     YSTR("layout_change_event"); YMAP(
@@ -265,10 +245,8 @@ dump_layout_change_event(yajl_gen gen, const int mon_num,
   return 0;
 }
 
-int
-dump_monitor_focus_change_event(yajl_gen gen, const int last_mon_num,
-                                const int new_mon_num)
-{
+int dump_monitor_focus_change_event(yajl_gen gen, const int last_mon_num,
+                                    const int new_mon_num) {
   // clang-format off
   YMAP(
     YSTR("monitor_focus_change_event"); YMAP(
@@ -281,11 +259,10 @@ dump_monitor_focus_change_event(yajl_gen gen, const int last_mon_num,
   return 0;
 }
 
-int
-dump_focused_title_change_event(yajl_gen gen, const int mon_num,
-                                const Window client_id, const char *old_name,
-                                const char *new_name)
-{
+int dump_focused_title_change_event(yajl_gen gen, const int mon_num,
+                                    const Window client_id,
+                                    const char *old_name,
+                                    const char *new_name) {
   // clang-format off
   YMAP(
     YSTR("focused_title_change_event"); YMAP(
@@ -300,9 +277,7 @@ dump_focused_title_change_event(yajl_gen gen, const int mon_num,
   return 0;
 }
 
-int
-dump_client_state(yajl_gen gen, const ClientState *state)
-{
+int dump_client_state(yajl_gen gen, const ClientState *state) {
   // clang-format off
   YMAP(
     YSTR("old_state"); YBOOL(state->oldstate);
@@ -317,12 +292,10 @@ dump_client_state(yajl_gen gen, const ClientState *state)
   return 0;
 }
 
-int
-dump_focused_state_change_event(yajl_gen gen, const int mon_num,
-                                const Window client_id,
-                                const ClientState *old_state,
-                                const ClientState *new_state)
-{
+int dump_focused_state_change_event(yajl_gen gen, const int mon_num,
+                                    const Window client_id,
+                                    const ClientState *old_state,
+                                    const ClientState *new_state) {
   // clang-format off
   YMAP(
     YSTR("focused_state_change_event"); YMAP(
@@ -337,9 +310,7 @@ dump_focused_state_change_event(yajl_gen gen, const int mon_num,
   return 0;
 }
 
-int
-dump_error_message(yajl_gen gen, const char *reason)
-{
+int dump_error_message(yajl_gen gen, const char *reason) {
   // clang-format off
   YMAP(
     YSTR("result"); YSTR("error");

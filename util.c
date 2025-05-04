@@ -8,7 +8,9 @@
 
 #include "util.h"
 
-void die(const char *fmt, ...) {
+void
+die(const char *fmt, ...)
+{
   va_list ap;
 
   va_start(ap, fmt);
@@ -24,7 +26,6 @@ void die(const char *fmt, ...) {
 
   exit(1);
 }
-
 
 int
 normalizepath(const char *path, char **normal)
@@ -159,7 +160,9 @@ nullterminate(char **str, size_t *len)
   return 0;
 }
 
-void *ecalloc(size_t nmemb, size_t size) {
+void *
+ecalloc(size_t nmemb, size_t size)
+{
   void *p;
 
   if (!(p = calloc(nmemb, size)))
