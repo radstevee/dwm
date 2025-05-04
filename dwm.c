@@ -734,7 +734,7 @@ cleanup(void)
   ipc_cleanup();
 
   if (close(epoll_fd) < 0) {
-    fprintf(stderr, "Failed to close epoll file descriptor\n");
+    error("Failed to close epoll file descriptor");
   }
 }
 
@@ -1861,7 +1861,7 @@ run(void)
 
     for (int i = 0; i < event_count; i++) {
       int event_fd = events[i].data.fd;
-      DEBUG("Got event from fd %d\n", event_fd);
+      DEBUG("Got event from fd %d", event_fd);
 
       if (event_fd == dpy_fd) {
         // -1 means EPOLLHUP
@@ -1873,13 +1873,12 @@ run(void)
         if (ipc_handle_client_epoll_event(events + i, mons, &lastselmon, selmon,
                                           tags, LENGTH(tags), layouts,
                                           LENGTH(layouts)) < 0) {
-          fprintf(stderr, "Error handling IPC event on fd %d\n", event_fd);
+          error("Error handling IPC event on fd %d", event_fd);
         }
       } else {
-        fprintf(stderr, "Got event from unknown fd %d, ptr %p, u32 %d, u64 %lu",
-                event_fd, events[i].data.ptr, events[i].data.u32,
-                events[i].data.u64);
-        fprintf(stderr, " with events %d\n", events[i].events);
+        error("Got event from unknown fd %d, ptr %p, u32 %d, u64 %lu with events %d",
+              event_fd, events[i].data.ptr, events[i].data.u32, events[i].data.u64,
+              events[i].events);
         return;
       }
     }
@@ -2182,22 +2181,21 @@ setupepoll(void)
   // Initialize struct to 0
   memset(&dpy_event, 0, sizeof(dpy_event));
 
-  DEBUG("Display socket is fd %d\n", dpy_fd);
+  DEBUG("Display socket is fd %d", dpy_fd);
 
   if (epoll_fd == -1) {
-    fputs("Failed to create epoll file descriptor", stderr);
+    error("Failed to create epoll file descriptor");
   }
 
   dpy_event.events = EPOLLIN;
   dpy_event.data.fd = dpy_fd;
   if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, dpy_fd, &dpy_event)) {
-    fputs("Failed to add display file descriptor to epoll", stderr);
     close(epoll_fd);
-    exit(1);
+    die("failed to add display file descriptors to epoll");
   }
 
   if (ipc_init(ipcsockpath, epoll_fd, ipccommands, LENGTH(ipccommands)) < 0) {
-    fputs("Failed to initialize IPC\n", stderr);
+    error("Failed to initialize IPC");
   }
 }
 
@@ -2902,7 +2900,7 @@ xerror(Display *dpy, XErrorEvent *ee)
       (ee->request_code == X_GrabKey && ee->error_code == BadAccess) ||
       (ee->request_code == X_CopyArea && ee->error_code == BadDrawable))
     return 0;
-  fprintf(stderr, "dwm: fatal error: request code=%d, error code=%d\n",
+  error("dwm: fatal error: request code=%d, error code=%d",
           ee->request_code, ee->error_code);
   return xerrorxlib(dpy, ee); /* may call exit */
 }
@@ -3006,12 +3004,13 @@ main(int argc, char *argv[])
   else if (argc != 1)
     die("usage: dwm [-v]");
   if (!setlocale(LC_CTYPE, "") || !XSupportsLocale())
-    fputs("warning: no locale support\n", stderr);
+    error("warning: no locale support");
   if (!(dpy = XOpenDisplay(NULL)))
     die("dwm: cannot open display");
   if (!(xcon = XGetXCBConnection(dpy)))
-    die("dwm: cannot get xcb connection\n");
+    die("dwm: cannot get xcb connection");
   checkotherwm();
+  initloggingdir(logfiledir);
   XrmInitialize();
   load_xresources();
   setup();
@@ -3022,5 +3021,6 @@ main(int argc, char *argv[])
     execvp(argv[0], argv);
   cleanup();
   XCloseDisplay(dpy);
+  closelogfile();
   return EXIT_SUCCESS;
 }

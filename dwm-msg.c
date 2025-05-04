@@ -11,6 +11,9 @@
 #include <unistd.h>
 #include <yajl/yajl_gen.h>
 
+#include "util.h"
+#include "sll.h"
+
 #define IPC_MAGIC "DWM-IPC"
 // clang-format off
 #define IPC_MAGIC_ARR { 'D', 'W', 'M', '-', 'I', 'P', 'C' }
@@ -80,15 +83,13 @@ recv_message(uint8_t *msg_type, uint32_t *reply_size,
 
     if (n == 0) {
       if (read_bytes == 0) {
-        fprintf(stderr, "Unexpectedly reached EOF while reading header.");
-        fprintf(stderr,
-                "Read %" PRIu32 " bytes, expected %" PRIu32 " total bytes.\n",
+        error("Unexpectedly reached EOF while reading header.");
+        error("Read %" PRIu32 " bytes, expected %" PRIu32 " total bytes.",
                 read_bytes, to_read);
         return -2;
       } else {
-        fprintf(stderr, "Unexpectedly reached EOF while reading header.");
-        fprintf(stderr,
-                "Read %" PRIu32 " bytes, expected %" PRIu32 " total bytes.\n",
+        error("Unexpectedly reached EOF while reading header.");
+        error("Read %" PRIu32 " bytes, expected %" PRIu32 " total bytes.",
                 read_bytes, to_read);
         return -3;
       }
@@ -101,7 +102,7 @@ recv_message(uint8_t *msg_type, uint32_t *reply_size,
 
   // Check if magic string in header matches
   if (memcmp(walk, IPC_MAGIC, IPC_MAGIC_LEN) != 0) {
-    fprintf(stderr, "Invalid magic string. Got '%.*s', expected '%s'\n",
+    error("Invalid magic string. Got '%.*s', expected '%s'",
             IPC_MAGIC_LEN, walk, IPC_MAGIC);
     return -3;
   }
@@ -124,8 +125,8 @@ recv_message(uint8_t *msg_type, uint32_t *reply_size,
     ssize_t n = read(sock_fd, *reply + read_bytes, *reply_size - read_bytes);
 
     if (n == 0) {
-      fprintf(stderr, "Unexpectedly reached EOF while reading payload.");
-      fprintf(stderr, "Read %" PRIu32 " bytes, expected %" PRIu32 " bytes.\n",
+      error("Unexpectedly reached EOF while reading payload.");
+      error("Read %" PRIu32 " bytes, expected %" PRIu32 " bytes.",
               read_bytes, *reply_size);
       free(*reply);
       return -2;
@@ -156,9 +157,7 @@ read_socket(IPCMessageType *msg_type, uint32_t *msg_size,
       if (ret == -1 && (errno == EINTR || errno == EAGAIN))
         continue;
 
-      fprintf(stderr, "Error receiving response from socket. ");
-      fprintf(stderr, "The connection might have been lost.\n");
-      exit(2);
+      die("failed receiving response from socket - the connection may have been lost");
     }
   }
 
@@ -451,10 +450,10 @@ usage_error(const char *prog_name, const char *format, ...)
   va_list args;
   va_start(args, format);
 
-  fprintf(stderr, "Error: ");
-  vfprintf(stderr, format, args);
-  fprintf(stderr, "\nusage: %s <command> [...]\n", prog_name);
-  fprintf(stderr, "Try '%s help'\n", prog_name);
+  error("error:");
+  vlogmsg(ERROR, format, args);
+  error("usage: %s <command> [...]", prog_name);
+  error("try '%s help'", prog_name);
 
   va_end(args);
   exit(1);
@@ -463,33 +462,33 @@ usage_error(const char *prog_name, const char *format, ...)
 static void
 print_usage(const char *name)
 {
-  printf("usage: %s [options] <command> [...]\n", name);
-  puts("");
-  puts("Commands:");
-  puts("  run_command <name> [args...]    Run an IPC command");
-  puts("");
-  puts("  get_monitors                    Get monitor properties");
-  puts("");
-  puts("  get_tags                        Get list of tags");
-  puts("");
-  puts("  get_layouts                     Get list of layouts");
-  puts("");
-  puts("  get_dwm_client <window_id>      Get dwm client proprties");
-  puts("");
-  puts("  subscribe [events...]           Subscribe to specified events");
-  puts("                                  Options: " IPC_EVENT_TAG_CHANGE ",");
-  puts("                                  " IPC_EVENT_LAYOUT_CHANGE ",");
-  puts("                                  " IPC_EVENT_CLIENT_FOCUS_CHANGE ",");
-  puts("                                  " IPC_EVENT_MONITOR_FOCUS_CHANGE ",");
-  puts("                                  " IPC_EVENT_FOCUSED_TITLE_CHANGE ",");
-  puts("                                  " IPC_EVENT_FOCUSED_STATE_CHANGE);
-  puts("");
-  puts("  help                            Display this message");
-  puts("");
-  puts("Options:");
-  puts("  --ignore-reply                  Don't print reply messages from");
-  puts("                                  run_command and subscribe.");
-  puts("");
+  info("usage: %s [options] <command> [...]", name);
+  info("");
+  info("Commands:");
+  info("  run_command <name> [args...]    Run an IPC command");
+  info("");
+  info("  get_monitors                    Get monitor properties");
+  info("");
+  info("  get_tags                        Get list of tags");
+  info("");
+  info("  get_layouts                     Get list of layouts");
+  info("");
+  info("  get_dwm_client <window_id>      Get dwm client proprties");
+  info("");
+  info("  subscribe [events...]           Subscribe to specified events");
+  info("                                  Options: " IPC_EVENT_TAG_CHANGE ",");
+  info("                                  " IPC_EVENT_LAYOUT_CHANGE ",");
+  info("                                  " IPC_EVENT_CLIENT_FOCUS_CHANGE ",");
+  info("                                  " IPC_EVENT_MONITOR_FOCUS_CHANGE ",");
+  info("                                  " IPC_EVENT_FOCUSED_TITLE_CHANGE ",");
+  info("                                  " IPC_EVENT_FOCUSED_STATE_CHANGE);
+  info("");
+  info("  help                            Display this message");
+  info("");
+  info("Options:");
+  info("  --ignore-reply                  Don't print reply messages from");
+  info("                                  run_command and subscribe.");
+  info("");
 }
 
 int
@@ -499,7 +498,7 @@ main(int argc, char *argv[])
 
   connect_to_socket();
   if (sock_fd == -1) {
-    fprintf(stderr, "Failed to connect to socket\n");
+    error("Failed to connect to socket");
     return 1;
   }
 

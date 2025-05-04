@@ -7,6 +7,7 @@
 
 #include "drw.h"
 #include "util.h"
+#include "sll.h"
 
 #define UTF_INVALID 0xFFFD
 #define UTF_SIZ 4
@@ -121,18 +122,18 @@ xfont_create(Drw *drw, const char *fontname,
      * behaviour whereas the former just results in missing-character
      * rectangles being drawn, at least with some fonts. */
     if (!(xfont = XftFontOpenName(drw->dpy, drw->screen, fontname))) {
-      fprintf(stderr, "error, cannot load font from name: '%s'\n", fontname);
+      error("error, cannot load font from name: '%s'", fontname);
       return NULL;
     }
     if (!(pattern = FcNameParse((FcChar8 *)fontname))) {
-      fprintf(stderr, "error, cannot parse font name to pattern: '%s'\n",
+      error("error, cannot parse font name to pattern: '%s'",
               fontname);
       XftFontClose(drw->dpy, xfont);
       return NULL;
     }
   } else if (fontpattern) {
     if (!(xfont = XftFontOpenPattern(drw->dpy, fontpattern))) {
-      fprintf(stderr, "error, cannot load font from pattern.\n");
+      error("error, cannot load font from pattern");
       return NULL;
     }
   } else {

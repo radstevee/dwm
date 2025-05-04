@@ -39,6 +39,8 @@ static char *colors[][3] = {
     [SchemeSel] = {selfgcolor, selbgcolor, selbordercolor},
     [SchemeBlue] = {normbgcolor, bluebgcolor, bluebgcolor}};
 
+static char *logfiledir = "/var/log/dwm";
+
 typedef struct {
   const char *name;
   const void *cmd;

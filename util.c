@@ -7,23 +7,18 @@
 #include <sys/stat.h>
 
 #include "util.h"
+#include "sll.h"
 
 void
-die(const char *fmt, ...)
+die(const char *format, ...)
 {
-  va_list ap;
+  va_list va;
 
-  va_start(ap, fmt);
-  vfprintf(stderr, fmt, ap);
-  va_end(ap);
+  va_start(va, format);
+  vlogmsg(ERROR, format, va);
+  va_end(va);
 
-  if (fmt[0] && fmt[strlen(fmt) - 1] == ':') {
-    fputc(' ', stderr);
-    perror(NULL);
-  } else {
-    fputc('\n', stderr);
-  }
-
+  closelogfile();
   exit(1);
 }
 
@@ -123,15 +118,15 @@ mkdirp(const char *path)
 
     if (res < 0) {
       if (errno == ENOENT) {
-        DEBUG("Making directory %s\n", curpath);
+        DEBUG("Making directory %s", curpath);
         if (mkdir(curpath, 0700) < 0) {
-          fprintf(stderr, "Failed to make directory %s\n", curpath);
+          error("Failed to make directory %s", curpath);
           perror("");
           free(normal);
           return -1;
         }
       } else {
-        fprintf(stderr, "Error statting directory %s\n", curpath);
+        error("Error statting directory %s", curpath);
         perror("");
         free(normal);
         return -1;
