@@ -24,7 +24,7 @@ static int showbar = 0; /* 0 means no bar */
 static int topbar = 1;  /* 0 means bottom bar */
 static int usealtbar = 1;
 static const char *altbarclass = "Eww";
-static const char *altbarcmd = "eww daemon; eww open-many bar0 bar1; eww reload";
+static const char *altbarcmd = "true";
 static char *fonts[] = {"ZedMono NerdFont:style:bold:pixelsize=16"};
 static char normbgcolor[] = "#222222";
 static char normbordercolor[] = "#444444";
@@ -38,6 +38,8 @@ static char *colors[][3] = {
     [SchemeNorm] = {normfgcolor, normbgcolor, normbordercolor},
     [SchemeSel] = {selfgcolor, selbgcolor, selbordercolor},
     [SchemeBlue] = {normbgcolor, bluebgcolor, bluebgcolor}};
+
+static int brushradius = 5;
 
 static char *logfiledir = "/var/log/dwm";
 
@@ -263,7 +265,9 @@ static const Key keys[] = {
      XF86XK_AudioStop,
      spawn,
      {.v = (const char *[]){"playerctl", "stop", NULL}}},
-    {MODKEY, XK_c, spawn, {.v = (const char *[]){"=", "--dmenu=dmenu", NULL}}}};
+    {MODKEY, XK_c, spawn, {.v = (const char *[]){"=", "--dmenu=dmenu", NULL}}},
+    {MODKEY | ShiftMask, XK_d, toggledrawingmode, {0}}
+};
 
 /* button definitions */
 /* click can be ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle,
@@ -275,6 +279,10 @@ static const Button buttons[] = {
     {ClkClientWin, MODKEY, Button3, resizemouse, {0}},
     {ClkClientWin, MODKEY, Button4, incrgaps, {.i = +1}},
     {ClkClientWin, MODKEY, Button5, incrgaps, {.i = -1}},
+    {ClkClientWin, 0, Button1, dodraw, {0}},
+    {ClkRootWin, 0, Button1, dodraw, {0}},
+    {ClkClientWin, 0, Button1, dodrawclick, {0}},
+    {ClkRootWin, 0, Button1, dodrawclick, {0}},
     {ClkTagBar, 0, Button1, view, {0}},
     {ClkTagBar, 0, Button3, toggleview, {0}},
     {ClkTagBar, MODKEY, Button1, tag, {0}},

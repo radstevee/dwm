@@ -4,6 +4,7 @@
 #include <sys/epoll.h>
 
 #include "util.h"
+#include "sll.h"
 
 IPCClient *
 ipc_client_new(int fd)

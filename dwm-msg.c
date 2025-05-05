@@ -463,18 +463,18 @@ static void
 print_usage(const char *name)
 {
   info("usage: %s [options] <command> [...]", name);
-  info("");
+  puts("");
   info("Commands:");
   info("  run_command <name> [args...]    Run an IPC command");
-  info("");
+  puts("");
   info("  get_monitors                    Get monitor properties");
-  info("");
+  puts("");
   info("  get_tags                        Get list of tags");
-  info("");
+  puts("");
   info("  get_layouts                     Get list of layouts");
-  info("");
+  puts("");
   info("  get_dwm_client <window_id>      Get dwm client proprties");
-  info("");
+  puts("");
   info("  subscribe [events...]           Subscribe to specified events");
   info("                                  Options: " IPC_EVENT_TAG_CHANGE ",");
   info("                                  " IPC_EVENT_LAYOUT_CHANGE ",");
@@ -482,13 +482,13 @@ print_usage(const char *name)
   info("                                  " IPC_EVENT_MONITOR_FOCUS_CHANGE ",");
   info("                                  " IPC_EVENT_FOCUSED_TITLE_CHANGE ",");
   info("                                  " IPC_EVENT_FOCUSED_STATE_CHANGE);
-  info("");
+  puts("");
   info("  help                            Display this message");
-  info("");
+  puts("");
   info("Options:");
   info("  --ignore-reply                  Don't print reply messages from");
   info("                                  run_command and subscribe.");
-  info("");
+  puts("");
 }
 
 int

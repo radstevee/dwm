@@ -24,11 +24,13 @@
 #include <X11/Xatom.h>
 #include <X11/Xlib.h>
 #include <X11/Xproto.h>
+#include <X11/Xprotostr.h>
 #include <X11/Xresource.h>
 #include <X11/Xutil.h>
 #include <X11/cursorfont.h>
+#include <X11/extensions/Xrender.h>
+#include <X11/extensions/shape.h>
 #include <X11/keysym.h>
-#include <errno.h>
 #include <locale.h>
 #include <math.h>
 #include <signal.h>
@@ -78,7 +80,7 @@
 #define TRUNC(X, A, B) (MAX((A), MIN((X), (B))))
 
 /* enums */
-enum { CurNormal, CurResize, CurMove, CurLast }; /* cursor */
+enum { CurNormal, CurResize, CurMove, CurPencil, CurLast }; /* cursor */
 enum { SchemeNorm, SchemeSel, SchemeBlue };      /* color schemes */
 enum {
   NetSupported,
@@ -89,9 +91,10 @@ enum {
   NetActiveWindow,
   NetWMWindowType,
   NetWMWindowTypeDialog,
+  NetWMWindowTypeDock,
   NetClientList,
   NetClientInfo,
-  NetLast
+  NetLast,
 }; /* EWMH atoms */
 enum {
   WMProtocols,
@@ -271,6 +274,13 @@ static void maprequest(XEvent *e);
 static void monocle(Monitor *m);
 static void motionnotify(XEvent *e);
 static void movemouse(const Arg *arg);
+static void createdrawingwindow(void);
+static void destroydrawingwindow(void);
+static void toggledrawingmode(const Arg *arg);
+static void enabledrawingmode(void);
+static void disabledrawingmode(void);
+static void dodraw(const Arg *arg);
+static void dodrawclick(const Arg *arg);
 static Client *nexttiled(Client *c);
 static void pop(Client *c);
 static void propertynotify(XEvent *e);
@@ -380,7 +390,8 @@ static Clr **scheme;
 static Display *dpy;
 static Drw *drw;
 static Monitor *mons, *selmon, *lastselmon;
-static Window root, wmcheckwin;
+static Window root, wmcheckwin, drawwin;
+static int drawingactive = 0;
 
 #include "ipc.h"
 
@@ -1603,7 +1614,7 @@ movemouse(const Arg *arg)
       handler[ev.type](&ev);
       break;
     case MotionNotify:
-      if ((ev.xmotion.time - lasttime) <= (1000 / 60))
+      if ((ev.xmotion.time - lasttime) <= (1000 / 144))
         continue;
       lasttime = ev.xmotion.time;
 
@@ -1631,6 +1642,139 @@ movemouse(const Arg *arg)
     selmon = m;
     focus(NULL);
   }
+}
+
+void
+createdrawingwindow(void)
+{
+  Atom opacityatom;
+  unsigned int opacity;
+
+  XSetWindowAttributes wa = {0};
+  XClassHint ch = {"dwm", "dwm-whiteboard"};
+
+  if (drawwin != None)
+    return;
+
+  wa.override_redirect = 1;
+  wa.background_pixel = 0;
+  wa.border_pixel = 0;
+  wa.event_mask = ButtonPressMask | ButtonReleaseMask | PointerMotionMask |
+                  ExposureMask | VisibilityChangeMask;
+
+  drawwin = XCreateWindow(dpy, root, 0, 0,
+                           DisplayWidth(dpy, screen),
+                           DisplayHeight(dpy, screen),
+                           0, DefaultDepth(dpy, screen),
+                           CopyFromParent, DefaultVisual(dpy, screen),
+                           CWOverrideRedirect | CWBackPixel | CWBorderPixel | CWEventMask, &wa);
+
+  XSetClassHint(dpy, drawwin, &ch);
+  XStoreName(dpy, drawwin, "dwm-whiteboard");
+
+  opacityatom = XInternAtom(dpy, "_NET_WM_WINDOW_OPACITY", False);
+  opacity = (unsigned int)(0.5 * 0xffffffff); /* 50% opacity */
+  XChangeProperty(dpy, drawwin, opacityatom, XA_CARDINAL, 32,
+                 PropModeReplace, (unsigned char *)&opacity, 1L);
+}
+
+void
+destroydrawingwindow(void)
+{
+  if (drawwin == None)
+    return;
+
+  XDestroyWindow(dpy, drawwin);
+  drawwin = None;
+}
+
+void
+toggledrawingmode(const Arg *arg)
+{
+  if (drawingactive == 0)
+    enabledrawingmode();
+  else
+    disabledrawingmode();
+}
+
+void
+enabledrawingmode(void)
+{
+  drawingactive = 1;
+  if (XGrabPointer(dpy, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
+                   None, cursor[CurPencil]->cursor, CurrentTime) != GrabSuccess) {
+    drawingactive = 0;
+  }
+
+  createdrawingwindow();
+  XMapRaised(dpy, drawwin);
+}
+
+void
+disabledrawingmode(void)
+{
+  drawingactive = 0;
+  if (drawwin != None)
+    destroydrawingwindow();
+
+  XUngrabPointer(dpy, CurrentTime);
+}
+
+void
+dodraw(const Arg *arg)
+{
+  int px, py, nx, ny;
+  XEvent ev;
+
+  if (drawingactive == 0)
+    return;
+
+  if (!getrootptr(&px, &py))
+    return;
+
+  nx = px;
+  ny = py;
+
+  drw_setscheme(drw, scheme[SchemeSel]);
+
+  do {
+    XMaskEvent(dpy, MOUSEMASK | ExposureMask | SubstructureRedirectMask, &ev);
+    switch (ev.type) {
+    case ConfigureRequest:
+    case Expose:
+    case MapRequest:
+      handler[ev.type](&ev);
+      break;
+    case MotionNotify:
+      nx = ev.xmotion.x_root;
+      ny = ev.xmotion.y_root;
+
+      drw_circle(drw, nx, ny, brushradius, 1, 0);
+      drw_map(drw, drawwin,
+                      nx - brushradius,
+                      ny - brushradius,
+                      2 * brushradius, 2 * brushradius);
+      break;
+    }
+  } while (ev.type != ButtonRelease);
+}
+
+void
+dodrawclick(const Arg *arg)
+{
+  int px, py;
+
+  if (drawingactive == 0)
+    return;
+
+  if (!getrootptr(&px, &py))
+    return;
+
+  drw_circle(drw, px, py, brushradius, 1, 0);
+  drw_map(drw, drawwin,
+                  px - brushradius,
+                  py - brushradius,
+                  2 * brushradius, 2 * brushradius);
 }
 
 Client *
@@ -1791,7 +1935,7 @@ resizemouse(const Arg *arg)
       handler[ev.type](&ev);
       break;
     case MotionNotify:
-      if ((ev.xmotion.time - lasttime) <= (1000 / 60))
+      if ((ev.xmotion.time - lasttime) <= (1000 / 144))
         continue;
       lasttime = ev.xmotion.time;
 
@@ -2132,12 +2276,15 @@ setup(void)
   netatom[NetWMWindowType] = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE", False);
   netatom[NetWMWindowTypeDialog] =
       XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_DIALOG", False);
+  netatom[NetWMWindowTypeDock] =
+      XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_DOCK", False);
   netatom[NetClientList] = XInternAtom(dpy, "_NET_CLIENT_LIST", False);
   netatom[NetClientInfo] = XInternAtom(dpy, "_NET_CLIENT_INFO", False);
   /* init cursors */
   cursor[CurNormal] = drw_cur_create(drw, XC_left_ptr);
   cursor[CurResize] = drw_cur_create(drw, XC_sizing);
   cursor[CurMove] = drw_cur_create(drw, XC_fleur);
+  cursor[CurPencil] = drw_cur_create(drw, XC_pencil);
   /* init appearance */
   scheme = ecalloc(LENGTH(colors), sizeof(Clr *));
   for (i = 0; i < LENGTH(colors); i++)
@@ -2907,7 +3054,9 @@ xerror(Display *dpy, XErrorEvent *ee)
 
 int
 xerrordummy(Display *dpy, XErrorEvent *ee)
-{ return 0; }
+{
+  return 0;
+}
 
 /* Startup Error handler to check if another window manager
  * is already running. */

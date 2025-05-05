@@ -405,6 +405,21 @@ drw_text(Drw *drw, int x, int y, unsigned int w, unsigned int h,
 }
 
 void
+drw_circle(Drw *drw, int x, int y, unsigned int r, int filled, int invert)
+{
+  if (!drw || !drw->scheme)
+    return;
+
+  XSetForeground(drw->dpy, drw->gc,
+                 invert ? drw->scheme[ColBg].pixel : drw->scheme[ColFg].pixel);
+
+  if (filled)
+    XFillArc(drw->dpy, drw->drawable, drw->gc, x - r, y - r, 2 * r, 2 * r, 0, 360 * 64);
+  else
+    XDrawArc(drw->dpy, drw->drawable, drw->gc, x - r, y - r, 2 * r, 2 * r, 0, 360 * 64);
+}
+
+void
 drw_map(Drw *drw, Window win, int x, int y, unsigned int w,
              unsigned int h)
 {
