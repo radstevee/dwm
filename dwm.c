@@ -94,6 +94,7 @@ enum {
   NetWMWindowTypeDock,
   NetClientList,
   NetClientInfo,
+  NetWMWindowOpacity,
   NetLast,
 }; /* EWMH atoms */
 enum {
@@ -279,6 +280,7 @@ static void destroydrawingwindow(void);
 static void toggledrawingmode(const Arg *arg);
 static void enabledrawingmode(void);
 static void disabledrawingmode(void);
+static void drawbresenhamline(int x0, int y0, int x1, int y1, int radius);
 static void dodraw(const Arg *arg);
 static void dodrawclick(const Arg *arg);
 static Client *nexttiled(Client *c);
@@ -1265,7 +1267,7 @@ grabbuttons(Client *c, int focused)
       XGrabButton(dpy, AnyButton, AnyModifier, c->win, False, BUTTONMASK,
                   GrabModeSync, GrabModeSync, None, None);
     for (i = 0; i < LENGTH(buttons); i++)
-      if (buttons[i].click == ClkClientWin)
+      if (buttons[i].click == ClkClientWin && !(buttons[i].func == dodraw || buttons[i].func == dodrawclick))
         for (j = 0; j < LENGTH(modifiers); j++)
           XGrabButton(dpy, buttons[i].button, buttons[i].mask | modifiers[j],
                       c->win, False, BUTTONMASK, GrabModeAsync, GrabModeSync,
@@ -1708,6 +1710,7 @@ enabledrawingmode(void)
 
   createdrawingwindow();
   XMapRaised(dpy, drawwin);
+  XClearWindow(dpy, drawwin);
 }
 
 void
@@ -1721,9 +1724,46 @@ disabledrawingmode(void)
 }
 
 void
+drawbresenhamline(int x0, int y0, int x1, int y1, int radius)
+{
+  int dx, dy, sx, sy, err, e2;
+  dx = abs(x1 - x0);
+  dy = -abs(y1 - y0);
+  sx = x0 < x1 ? 1 : -1;
+  sy = y0 < y1 ? 1 : -1;
+  err = dx + dy;
+
+  while (1) {
+    drw_circle(drw, x0, y0, radius, 1, 0);
+    drw_map(drw, drawwin, x0 - radius, y0 - radius, 2 * radius, 2 * radius);
+
+    if (x0 == x1 && y0 == y1)
+      break;
+
+    e2 = 2 * err;
+
+    if (e2 >= dy) {
+      if (x0 == x1)
+        break;
+
+      err += dy;
+      x0 += sx;
+    }
+
+    if (e2 <= dx) {
+      if (y0 == y1)
+        break;
+
+      err += dx;
+      y0 += sy;
+    }
+  }
+}
+
+void
 dodraw(const Arg *arg)
 {
-  int px, py, nx, ny;
+  int px, py, nx, ny, ox, oy;
   XEvent ev;
 
   if (drawingactive == 0)
@@ -1734,8 +1774,15 @@ dodraw(const Arg *arg)
 
   nx = px;
   ny = py;
+  ox = nx;
+  oy = ny;
 
   drw_setscheme(drw, scheme[SchemeSel]);
+  drw_circle(drw, nx, ny, brushradius, 1, 0);
+  drw_map(drw, drawwin,
+                  nx - brushradius,
+                  ny - brushradius,
+                  2 * brushradius, 2 * brushradius);
 
   do {
     XMaskEvent(dpy, MOUSEMASK | ExposureMask | SubstructureRedirectMask, &ev);
@@ -1749,11 +1796,21 @@ dodraw(const Arg *arg)
       nx = ev.xmotion.x_root;
       ny = ev.xmotion.y_root;
 
-      drw_circle(drw, nx, ny, brushradius, 1, 0);
-      drw_map(drw, drawwin,
-                      nx - brushradius,
-                      ny - brushradius,
-                      2 * brushradius, 2 * brushradius);
+      if (ox >= 0 && oy >= 0) {
+        XSetForeground(dpy, drw->gc, scheme[SchemeSel][ColFg].pixel);
+        drawbresenhamline(ox, oy, nx, ny, brushradius);
+      } else {
+        drw_circle(drw, nx, ny, brushradius, 1, 0);
+        drw_map(drw, drawwin,
+                        nx - brushradius,
+                        ny - brushradius,
+                        2 * brushradius, 2 * brushradius);
+      }
+
+      XSync(dpy, False);
+
+      ox = nx;
+      oy = ny;
       break;
     }
   } while (ev.type != ButtonRelease);
@@ -2280,6 +2337,7 @@ setup(void)
       XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_DOCK", False);
   netatom[NetClientList] = XInternAtom(dpy, "_NET_CLIENT_LIST", False);
   netatom[NetClientInfo] = XInternAtom(dpy, "_NET_CLIENT_INFO", False);
+  netatom[NetWMWindowOpacity] = XInternAtom(dpy, "_NET_WM_WINDOW_OPACITY", False);
   /* init cursors */
   cursor[CurNormal] = drw_cur_create(drw, XC_left_ptr);
   cursor[CurResize] = drw_cur_create(drw, XC_sizing);
