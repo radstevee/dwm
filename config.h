@@ -1,8 +1,13 @@
 /* See LICENSE file for copyright and license details. */
 
-/* Constants */
 #include <X11/X.h>
 #include <X11/Xutil.h>
+#include <X11/XF86keysym.h>
+
+#include "vanitygaps.c"
+#include "shiftview.c"
+
+/* Constants */
 #define TERMINAL "st"
 #define TERMCLASS "St"
 #define BROWSER "firefox"
@@ -21,7 +26,7 @@ static int topbar = 1;  /* 0 means bottom bar */
 static int usealtbar = 1;
 static const char *altbarclass = "Eww";
 static const char *altbarcmd = "true";
-static char *fonts[] = {"ZedMono NerdFont:style:bold:pixelsize=16"};
+static const char *fonts[] = {"ZedMono NerdFont:style:bold:pixelsize=16"};
 static char normbgcolor[] = "#222222";
 static char normbordercolor[] = "#444444";
 static char normfgcolor[] = "#bbbbbb";
@@ -38,7 +43,7 @@ static char *colors[][3] = {
 
 static int brushradius = 5;
 
-static char *logfiledir = "/var/log/dwm";
+static const char *logfiledir = "/var/log/dwm";
 
 typedef struct {
   const char *name;
@@ -75,7 +80,6 @@ static int nmaster = 1;     /* number of clients in master area */
 static int resizehints = 0; /* 1 means respect size hints in tiled resizals */
 static const int lockfullscreen = 0; /* 1 will force focus on the fullscreen window */
 #define FORCE_VSPLIT 1 /* nrowgrid layout: force two clients to always split vertically */
-#include "vanitygaps.c"
 static const Layout layouts[] = {
   /* symbol     arrange function */
   { "[]=",      tile },   /* Default: Master on left, slaves on right */
@@ -140,8 +144,6 @@ ResourcePref resources[] = {
   { "bluebgcolor",          STRING,       &bluebgcolor }
 };
 
-#include "shiftview.c"
-#include <X11/XF86keysym.h>
 
 static const Key keys[] = {
 	/* modifier                      key          function         argument */
