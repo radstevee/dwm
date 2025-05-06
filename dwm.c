@@ -2091,7 +2091,9 @@ runautostart(void)
 {
   for (size_t i = 0; i < sizeof(autostartcmds) / sizeof(autostartcmds[0]);
        i++) {
-    system(autostartcmds[i]);
+    const char *cmd[] = { autostartcmds[i], NULL };
+    Arg arg = { .v = cmd };
+    spawn(&arg);
   }
 }
 
