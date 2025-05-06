@@ -13,7 +13,7 @@ void
 die(const char *format, ...)
 {
   va_list va;
-
+  error("dwm crashed for the following reason:");
   va_start(va, format);
   vlogmsg(ERROR, format, va);
   va_end(va);
