@@ -4,9 +4,6 @@
 #include <X11/Xutil.h>
 #include <X11/XF86keysym.h>
 
-#include "vanitygaps.c"
-#include "shiftview.c"
-
 /* Constants */
 #define TERMINAL "st"
 #define TERMCLASS "St"
@@ -14,19 +11,19 @@
 
 /* appearance */
 static unsigned int borderpx = 3; /* border pixel of windows */
-static unsigned int snap = 32;    /* snap pixel */
-static unsigned int gappih = 20;  /* horiz inner gap between windows */
-static unsigned int gappiv = 10;  /* vert inner gap between windows */
+static unsigned int snap = 32; /* snap pixel */
+static unsigned int gappih = 20; /* horiz inner gap between windows */
+static unsigned int gappiv = 10; /* vert inner gap between windows */
 static unsigned int gappoh = 30; /* horiz outer gap between windows and screen edge */
 static unsigned int gappov = 30; /* vert outer gap between windows and screen edge */
 static int swallowfloating = 0; /* 1 means swallow floating windows by default */
 static int smartgaps = 0; /* 1 means no outer gap when there is only one window */
 static int showbar = 0; /* 0 means no bar */
-static int topbar = 1;  /* 0 means bottom bar */
+static int topbar = 1; /* 0 means bottom bar */
 static int usealtbar = 1;
 static const char *altbarclass = "Eww";
 static const char *altbarcmd = "true";
-static const char *fonts[] = {"ZedMono NerdFont:style:bold:pixelsize=16"};
+static char *fonts[] = {"ZedMono NerdFont:style:bold:pixelsize=16"};
 static char normbgcolor[] = "#222222";
 static char normbordercolor[] = "#444444";
 static char normfgcolor[] = "#bbbbbb";
@@ -43,7 +40,7 @@ static char *colors[][3] = {
 
 static int brushradius = 5;
 
-static const char *logfiledir = "/var/log/dwm";
+static char *logfiledir = "/var/log/dwm";
 
 typedef struct {
   const char *name;
@@ -61,6 +58,9 @@ static Sp scratchpads[] = {
 
 /* tagging */
 static const char *tags[] = {"1", "2", "3", "4", "5", "6", "7", "8", "9"};
+
+#include "vanitygaps.c"
+#include "shiftview.c"
 
 static const Rule rules[] = {
   /* xprop(1):
@@ -215,23 +215,23 @@ static const Key keys[] = {
 /* click can be ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle,
  * ClkClientWin, or ClkRootWin */
 static const Button buttons[] = {
-    /* click                 event mask      button          function       argument */
-    { ClkClientWin,          MODKEY,         Button1,        movemouse,     {0} },
-    { ClkClientWin,          MODKEY,         Button2,        defaultgaps,   {0} },
-    { ClkClientWin,          MODKEY,         Button3,        resizemouse,   {0} },
-    { ClkClientWin,          MODKEY,         Button4,        incrgaps,      {.i = +1} },
-    { ClkClientWin,          MODKEY,         Button5,        incrgaps,      {.i = -1} },
-    { ClkClientWin,          0,              Button1,        dodraw,        {0} },
-    { ClkRootWin,            0,              Button1,        dodraw,        {0} },
-    { ClkClientWin,          0,              Button1,        dodrawclick,   {0} },
-    { ClkRootWin,            0,              Button1,        dodrawclick,   {0} },
-    { ClkTagBar,             0,              Button1,        view,          {0} },
-    { ClkTagBar,             0,              Button3,        toggleview,    {0} },
-    { ClkTagBar,             MODKEY,         Button1,        tag,           {0} },
-    { ClkTagBar,             MODKEY,         Button3,        toggletag,     {0} },
-    { ClkTagBar,             0,              Button4,        shiftview,     {.i = -1} },
-    { ClkTagBar,             0,              Button5,        shiftview,     {.i = 1} },
-    { ClkRootWin,            0,              Button2,        togglebar,     {0} },
+  /* click                 event mask      button          function       argument */
+  { ClkClientWin,          MODKEY,         Button1,        movemouse,     {0} },
+  { ClkClientWin,          MODKEY,         Button2,        defaultgaps,   {0} },
+  { ClkClientWin,          MODKEY,         Button3,        resizemouse,   {0} },
+  { ClkClientWin,          MODKEY,         Button4,        incrgaps,      {.i = +1} },
+  { ClkClientWin,          MODKEY,         Button5,        incrgaps,      {.i = -1} },
+  { ClkClientWin,          0,              Button1,        dodraw,        {0} },
+  { ClkRootWin,            0,              Button1,        dodraw,        {0} },
+  { ClkClientWin,          0,              Button1,        dodrawclick,   {0} },
+  { ClkRootWin,            0,              Button1,        dodrawclick,   {0} },
+  { ClkTagBar,             0,              Button1,        view,          {0} },
+  { ClkTagBar,             0,              Button3,        toggleview,    {0} },
+  { ClkTagBar,             MODKEY,         Button1,        tag,           {0} },
+  { ClkTagBar,             MODKEY,         Button3,        toggletag,     {0} },
+  { ClkTagBar,             0,              Button4,        shiftview,     {.i = -1} },
+  { ClkTagBar,             0,              Button5,        shiftview,     {.i = 1} },
+  { ClkRootWin,            0,              Button2,        togglebar,     {0} },
 };
 
 void
@@ -278,32 +278,31 @@ tagall(const Arg *arg)
 
 /* signal definitions */
 /* signum must be greater than 0 */
-/* trigger signals using `xsetroot -name "fsignal:<signame> [<type> <value>]"`
- */
+/* trigger signals using `xsetroot -name "fsignal:<signame> [<type> <value>]"` */
 static Signal signals[] = {
-    /* signum           function */
-    { "focusstack",      focusstack },
-    { "setmfact",        setmfact },
-    { "togglebar",       togglebar },
-    { "incnmaster",      incnmaster },
-    { "togglefloating",  togglefloating },
-    { "focusmon",        focusmon },
-    { "tagmon",          tagmon },
-    { "zoom",            zoom },
-    { "view",            view },
-    { "viewall",         viewall },
-    { "viewex",          viewex },
-    { "toggleview",      view },
-    { "toggleviewex",    toggleviewex },
-    { "tag",             tag },
-    { "tagall",          tagall },
-    { "tagex",           tagex },
-    { "toggletag",       tag },
-    { "toggletagex",     toggletagex },
-    { "killclient",      killclient },
-    { "quit",            quit },
-    { "setlayout",       setlayout },
-    { "setlayoutex",     setlayoutex },
+  /* signum           function */
+  { "focusstack",      focusstack },
+  { "setmfact",        setmfact },
+  { "togglebar",       togglebar },
+  { "incnmaster",      incnmaster },
+  { "togglefloating",  togglefloating },
+  { "focusmon",        focusmon },
+  { "tagmon",          tagmon },
+  { "zoom",            zoom },
+  { "view",            view },
+  { "viewall",         viewall },
+  { "viewex",          viewex },
+  { "toggleview",      view },
+  { "toggleviewex",    toggleviewex },
+  { "tag",             tag },
+  { "tagall",          tagall },
+  { "tagex",           tagex },
+  { "toggletag",       tag },
+  { "toggletagex",     toggletagex },
+  { "killclient",      killclient },
+  { "quit",            quit },
+  { "setlayout",       setlayout },
+  { "setlayoutex",     setlayoutex },
 };
 
 static const char *ipcsockpath = "/tmp/dwm.sock";
